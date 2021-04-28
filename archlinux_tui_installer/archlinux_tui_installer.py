@@ -218,7 +218,7 @@ def install(key_layout, target_partition, user_name, host_name, user_pass, root_
     ]
     for files in need_remove_files:
         subprocess.run(["arch-chroot", "/tmp/arch-install", "rm", "-rf", files])
-    subprocess.run(["arch-chroot", "/tmp/arch-install", "userdel", "-r", "arch"])
+    #ssubprocess.run(["arch-chroot", "/tmp/arch-install", "userdel", "-r", "arch"])
     subprocess.run(["arch-chroot", "/tmp/arch-install", "sed", "-i", "s/Storage=volatile/#Storage=auto/","/etc/systemd/journald.conf"])
     # change host name and keyboard
     hostname_file=open("/tmp/arch-install/etc/hostname","w")
