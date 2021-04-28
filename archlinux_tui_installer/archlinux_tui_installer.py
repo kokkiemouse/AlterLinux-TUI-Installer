@@ -12,7 +12,7 @@ from   dialog     import Dialog
 hdds_re = re.compile(r"^/dev/[hsnm][dmv].[1234567890eb].*$")
 
 def init_translation():
-    translater=gettext.translation("alterlinux_tui_installer",fallback=True)
+    translater=gettext.translation("archlinux_tui_installer",fallback=True)
     translater.install()
 
 def finish():
@@ -178,32 +178,29 @@ def get_grub_efi_target(main_dialog:Dialog, partition_path):
 # install
 def install(key_layout, target_partition, user_name, host_name, user_pass, root_pass, eps_dev_path):
     subprocess.run("clear")
-    print("Alter Linux installation in progress...")
+    print("Arch Linux installation in progress...")
     # format
     subprocess.run(["mkfs.ext4", target_partition, "-F"])
-    subprocess.run(["mkdir", "/tmp/alter-install"])
-    subprocess.run(["mount", target_partition, "/tmp/alter-install"])
+    subprocess.run(["mkdir", "/tmp/arch-install"])
+    subprocess.run(["mount", target_partition, "/tmp/arch-install"])
     # unsquashfs
     airootfs_path = subprocess.check_output(
         ["find", "/run/archiso/bootmnt", "-name", "airootfs.sfs"],
         text=True)
-    subprocess.run(["unsquashfs", "-f", "-d", "/tmp/alter-install", airootfs_path.rstrip("\n")])
+    subprocess.run(["unsquashfs", "-f", "-d", "/tmp/arch-install", airootfs_path.rstrip("\n")])
     #kernel copy
     kernel_release_ver=os.uname().release
     kernel_path="/usr/lib/modules/" + kernel_release_ver + "/vmlinuz"
-    kernelname_file=open("/root/kernel_filename","r")
-    kernel_name=kernelname_file.readline().strip()
-    kernelname_file.close()
-    subprocess.run(["cp",kernel_path,"/tmp/alter-install/boot/" + kernel_name])
+    subprocess.run(["cp",kernel_path,"/tmp/arch-install/boot/" + "vmlinuz-linux"])
     #mkinitcpio
-    subprocess.run(["arch-chroot","/tmp/alter-install","mkinitcpio","-P"])
+    subprocess.run(["arch-chroot","/tmp/arch-install","mkinitcpio","-P"])
     #grub install
-    subprocess.run(["mkdir","-p","/tmp/alter-install/boot/efi"])
-    subprocess.run(["mount",eps_dev_path,"/tmp/alter-install/boot/efi"])
-    subprocess.run(["arch-chroot","/tmp/alter-install","grub-install","--target=x86_64-efi","--efi-directory=/boot/efi","--bootloader-id=Alter"])
-    subprocess.run(["arch-chroot","/tmp/alter-install","grub-mkconfig","-o","/boot/grub/grub.cfg"])
-    subprocess.run("genfstab -U /tmp/alter-install >> /tmp/alter-install/etc/fstab",shell=True)
-    subprocess.run(["umount","/tmp/alter-install/boot/efi"])
+    subprocess.run(["mkdir","-p","/tmp/arch-install/boot/efi"])
+    subprocess.run(["mount",eps_dev_path,"/tmp/arch-install/boot/efi"])
+    subprocess.run(["arch-chroot","/tmp/arch-install","grub-install","--target=x86_64-efi","--efi-directory=/boot/efi","--bootloader-id=Arch"])
+    subprocess.run(["arch-chroot","/tmp/arch-install","grub-mkconfig","-o","/boot/grub/grub.cfg"])
+    subprocess.run("genfstab -U /tmp/arch-install >> /tmp/arch-install/etc/fstab",shell=True)
+    subprocess.run(["umount","/tmp/arch-install/boot/efi"])
     # remove settings and files for live boot
     need_remove_files = [
         "/usr/share/calamares/",
@@ -213,38 +210,38 @@ def install(key_layout, target_partition, user_name, host_name, user_pass, root_
         "/etc/skel/Desktop",
         "/etc/skel/.config/gtk-3.0/bookmarks",
         "/etc/polkit-1/rules.d/01-nopasswork.rules",
-        "/etc/sudoers.d/alterlive",
+        "/etc/sudoers.d/archlive",
         "/etc/mkinitcpio-archiso.conf",
         "/etc/udev/rules.d/81-dhcpcd.rules",
         "/etc/systemd/system/getty@tty1.service.d",
         "/etc/systemd/system/getty@tty1.service.d/autologin.conf",
     ]
     for files in need_remove_files:
-        subprocess.run(["arch-chroot", "/tmp/alter-install", "rm", "-rf", files])
-    subprocess.run(["arch-chroot", "/tmp/alter-install", "userdel", "-r", "alter"])
-    subprocess.run(["arch-chroot", "/tmp/alter-install", "sed", "-i", "s/Storage=volatile/#Storage=auto/","/etc/systemd/journald.conf"])
+        subprocess.run(["arch-chroot", "/tmp/arch-install", "rm", "-rf", files])
+    subprocess.run(["arch-chroot", "/tmp/arch-install", "userdel", "-r", "arch"])
+    subprocess.run(["arch-chroot", "/tmp/arch-install", "sed", "-i", "s/Storage=volatile/#Storage=auto/","/etc/systemd/journald.conf"])
     # change host name and keyboard
-    hostname_file=open("/tmp/alter-install/etc/hostname","w")
+    hostname_file=open("/tmp/arch-install/etc/hostname","w")
     hostname_file.write(host_name)
     hostname_file.close()
-    #subprocess.run(["arch-chroot", "/tmp/alter-install", "hostnamectl", "set-hostname", host_name])
-    subprocess.run(["arch-chroot", "/tmp/alter-install", "localectl", "set-keymap", key_layout])
+    #subprocess.run(["arch-chroot", "/tmp/arch-install", "hostnamectl", "set-hostname", host_name])
+    subprocess.run(["arch-chroot", "/tmp/arch-install", "localectl", "set-keymap", key_layout])
     # add user
-    subprocess.run(["arch-chroot", "/tmp/alter-install", "groupadd", user_name])
-    subprocess.run(["arch-chroot", "/tmp/alter-install", "useradd", "-m", "-g", user_name, "-s", "/bin/zsh", user_name])
-    subprocess.run(["arch-chroot", "/tmp/alter-install", "usermod", "-G", "sudo", user_name])
+    subprocess.run(["arch-chroot", "/tmp/arch-install", "groupadd", user_name])
+    subprocess.run(["arch-chroot", "/tmp/arch-install", "useradd", "-m", "-g", user_name, "-s", "/bin/zsh", user_name])
+    subprocess.run(["arch-chroot", "/tmp/arch-install", "usermod", "-G", "sudo", user_name])
     # change password
-    subprocess.run(["arch-chroot", "/tmp/alter-install", "passwd", user_name], input=(user_pass+"\n"+user_pass), text=True)
-    subprocess.run(["arch-chroot", "/tmp/alter-install", "passwd", user_name], input=(root_pass + "\n" + root_pass), text=True)
+    subprocess.run(["arch-chroot", "/tmp/arch-install", "passwd", user_name], input=(user_pass+"\n"+user_pass), text=True)
+    subprocess.run(["arch-chroot", "/tmp/arch-install", "passwd", user_name], input=(root_pass + "\n" + root_pass), text=True)
     # clean up
     subprocess.run(["umount", target_partition])
-    subprocess.run(["rm", "-rf", "/tmp/alter-install"])
+    subprocess.run(["rm", "-rf", "/tmp/arch-install"])
 
 # main
 def main():
     main_dialog          = Dialog(dialog="dialog")
-    main_dialog.setBackgroundTitle("Alter Linux Installer")
-    if main_dialog.yesno("Install Alter Linux?") == main_dialog.OK:
+    main_dialog.setBackgroundTitle("Arch Linux Installer")
+    if main_dialog.yesno("Install Arch Linux?") == main_dialog.OK:
         conf_str         = "Start the installation with the following settings.\nAre you sure?\n\n"
         # get keyboard layout
         key_layout       = key_layout_select(main_dialog)
@@ -271,7 +268,7 @@ def main():
                 ask_sure_to_exit(main_dialog)
                 continue
         install(key_layout, target_partition, user_name, host_name, user_pass, root_pass, eps_dev_path)
-        main_dialog.msgbox("Alter Linux installation completed!", width=40)
+        main_dialog.msgbox("Arch Linux installation completed!", width=40)
     finish()
 if __name__ == "__main__":
     init_translation()
