@@ -191,7 +191,6 @@ def install(key_layout, target_partition, user_name, host_name, user_pass, root_
     #kernel copy
     kernel_release_ver=os.uname().release
     kernel_path="/usr/lib/modules/" + kernel_release_ver + "/vmlinuz"
-    subprocess.run(["mkdir","-p","/tmp/arch-install/boot/")
     subprocess.run(["cp",kernel_path,"/tmp/arch-install/boot/" + "vmlinuz-linux"])
     #mkinitcpio
     subprocess.run(["arch-chroot","/tmp/arch-install","mkinitcpio","-P"])
