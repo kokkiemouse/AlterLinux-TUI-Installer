@@ -173,7 +173,7 @@ def get_grub_efi_target(main_dialog:Dialog, partition_path):
             else:
                 ask_sure_to_exit(main_dialog)
                 continue
-        return eps_dev_path
+    return eps_dev_path
 
 # install
 def install(key_layout, target_partition, user_name, host_name, user_pass, root_pass, eps_dev_path):
@@ -187,7 +187,7 @@ def install(key_layout, target_partition, user_name, host_name, user_pass, root_
     airootfs_path = subprocess.check_output(
         ["find", "/run/archiso/bootmnt", "-name", "airootfs.sfs"],
         text=True)
-    subprocess.run(["unsquashfs", "-f", "-d", "/tmp/arch-install", airootfs_path.rstrip("\n")])
+    subprocess.run(["unsquashfs", "-f", "-d", "/tmp/    -install", airootfs_path.rstrip("\n")])
     #kernel copy
     kernel_release_ver=os.uname().release
     kernel_path="/usr/lib/modules/" + kernel_release_ver + "/vmlinuz"
